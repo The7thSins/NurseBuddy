@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>กราฟอัตราการไหล – เตียงที่ <span id="bedIdDisplay">?</span></title>
+  <title>กราฟอัตราการไหล – เตียงที่ <span id="bedIdDisplay">?</span></title>
 
   <!-- โหลด CSS โปรเจกต์ -->
   <link rel="stylesheet" href="style.css"/>
@@ -15,7 +15,7 @@
   <script src="data-manager.js"></script>
 </head>
 <body>
-  <h1>กราฟอัตราการไหล – เตียงที่ <span id="bedIdDisplay"></span></h1>
+  <h1>กราฟอัตราการไหล – เตียงที่ <span id="bedIdDisplay"></span></h1>
 
   <!-- 3. พื้นที่ให้ canvas สำหรับวาดกราฟ -->
   <div style="width:80%; max-width:800px; margin: 1em auto;">
@@ -28,9 +28,15 @@
     const bedId = params.get('bed') || '1';
     document.getElementById('bedIdDisplay').textContent = bedId;
 
+    // ตรวจสอบ dataManager
+    if (typeof dataManager === 'undefined' || !dataManager.getIORecords) {
+      console.error('dataManager หรือฟังก์ชัน getIORecords ไม่ถูกต้อง');
+      document.getElementById('myChart').parentElement.innerHTML = '<p style="color:red; text-align:center;">เกิดข้อผิดพลาดในการโหลดข้อมูลกราฟ</p>';
+      throw new Error('dataManager.getIORecords ไม่พบ');
+    }
+
     // ดึงข้อมูล I/O ของเตียงจาก dataManager
-    // ต้อง return array ของ object ที่มี { time: timestamp, flowRate: number }
-    const ioData = dataManager.getIORecords(bedId);
+    const ioData = dataManager.getIORecords(bedId) || [];
 
     // สร้าง labels (เวลา) และ data (flowRate)
     const labels = ioData.map(r => {
@@ -65,8 +71,7 @@
           legend: { position: 'top' },
           title: {
             display: true,
-            // bedId cannot be injected here from template string; remove dynamic reference
-            text: 'กราฟอัตราการไหล'
+            text: `กราฟอัตราการไหล – เตียง ${bedId}`
           }
         }
       }
